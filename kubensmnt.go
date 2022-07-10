@@ -16,6 +16,11 @@
 
 package kubensmnt
 
+import (
+	_ "github.com/containers/kubensmnt/utils/kubensenter"
+	_ "github.com/containers/kubensmnt/utils/systemd"
+)
+
 // EnvName is the name of the environment variable where we check for a mount namespace bindmount.
 // If unset, no action is taken.  If set and points at a mount namespace
 // bindmount, enter that mount namespace before executing this Go program.  If
