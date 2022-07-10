@@ -20,7 +20,7 @@ this is as simple as adding the `kubensmnt-dropin.conf` to the service. This
 drop-in will introduce an After relationship to `kubensmnt.service` and include
 the appropriate environment variable if the service is running.
 
-For other services that do not use the kubensmnt library, you can wrap their execution in nsenter(1).
+For other services that do not use the kubensmnt library, you can wrap their execution in [kubensenter](../kubensenter/) or nsenter(1).
 
 Example nsenter usage:
 
