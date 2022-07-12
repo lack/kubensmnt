@@ -24,7 +24,7 @@ import (
 )
 
 func main() {
-	path, err := kubensmnt.Status()
+	path, err := kubensmnt.Autodetect()
 	if err != nil {
 		panic(err)
 	}

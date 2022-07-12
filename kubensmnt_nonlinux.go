@@ -1,5 +1,5 @@
-//go:build !linux || !cgo
-// +build !linux !cgo
+//go:build !linux || !amd64 || _test_nonlinux
+// +build !linux !amd64 _test_nonlinux
 
 /*
  * Copyright 2022 Jim Ramsay <jramsay@redhat.com>
@@ -21,14 +21,8 @@ package kubensmnt
 
 import (
 	"errors"
-	"fmt"
-	"os"
 )
 
-func status() (string, error) {
-	namespace := os.Getenv(EnvName)
-	if namespace == "" {
-		return "", nil
-	}
-	return namespace, errors.New(fmt.Sprintf("%s mount namespaces are not supported on this platform", EnvName))
+func enter(string) error {
+	return errors.New("Mount namespaces are not supported on this platform")
 }

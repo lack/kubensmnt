@@ -1,5 +1,5 @@
-//go:build linux && cgo
-// +build linux,cgo
+//go:build linux && amd64 && !_test_nonlinux
+// +build linux,amd64,!_test_nonlinux
 
 /*
  * Copyright 2022 Jim Ramsay <jramsay@redhat.com>
@@ -19,32 +19,30 @@
 
 package kubensmnt
 
-/*
-#cgo CFLAGS: -Wall -D_GNU_SOURCE
+import (
+	"os"
+	"syscall"
+)
 
-#include "kubensmnt.h"
+const (
+	CLONE_NEWNS = 0x00020000
+	SYS_SETNS   = 308
+)
 
-#define ERR_LIMIT 128
-
-char* nsenterConfig = "";
-int nsenterResult = -1;
-char _errorMessage[ERR_LIMIT];
-char* errorMessage = _errorMessage; // Use an intermediary because C.GoString can't work on an array
-
-void __attribute__((constructor)) crio_nsenter_init(int argc, char **argv, char *envp[]) {
-	errorMessage[0] = '\0';
-	nsenterConfig = getKubeNsMnt();
-	nsenterResult = joinMountNamespace(nsenterConfig, errorMessage, ERR_LIMIT);
-}
-*/
-import "C"
-
-import "errors"
-
-func status() (string, error) {
-	config := C.GoString(C.nsenterConfig)
-	if C.nsenterResult == -1 {
-		return config, errors.New(C.GoString(C.errorMessage))
+func enter(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
 	}
-	return config, nil
+	return setNs(file.Fd(), CLONE_NEWNS)
+}
+
+func setNs(fd uintptr, nstype uintptr) syscall.Errno {
+	_, _, err := syscall.Syscall(SYS_SETNS, uintptr(fd), uintptr(nstype), 0)
+	return err
+}
+
+func setAllNs(fd uintptr, nstype uintptr) syscall.Errno {
+	_, _, err := syscall.AllThreadsSyscall(SYS_SETNS, uintptr(fd), uintptr(nstype), 0)
+	return err
 }

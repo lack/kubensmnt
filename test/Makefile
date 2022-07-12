@@ -11,6 +11,6 @@ test-linux:
 	go build -o $@
 
 test-nonlinux:
-	CGO_ENABLED=0 go build -o $@
+	go build -tags _test_nonlinux -o $@
 
 

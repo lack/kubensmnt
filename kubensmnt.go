@@ -16,18 +16,34 @@
 
 package kubensmnt
 
+import (
+	"errors"
+	"os"
+)
+
 // EnvName is the name of the environment variable where we check for a mount namespace bindmount.
 // If unset, no action is taken.  If set and points at a mount namespace
 // bindmount, enter that mount namespace before executing this Go program.  If
 // set and an error occurs, the Status function will report an error.
-const EnvName = "KUBENSMNT" // Note: Must be manually kept in-sync with the value in kubensmnt.h
+const EnvName = "KUBENSMNT"
 
-// Status returns the configured KubeNS mount namespace filename (or an empty
-// string if not configured), and an error representing whether the namespace
-// join succeeded.  The actual work of entering a mount namespace must be done
-// in a C init-function before any Go threads start up, so all we can do inside
-// Go is provide a report of what happened.
-func Status() (string, error) {
-	// Dispatch to the proper build-time instance (see kubensmnt_*.go)
-	return status()
+// DefaultKubensmnt is the default location where kubensmnt.service places its bound mount namespace
+const DefaultKubensmnt = "/run/kubensmnt/mnt"
+
+// Enter enters the namespace given by the path
+func Enter(path string) error {
+	return enter(path)
+}
+
+// Autodetect tries to enter the kubensmnt.service mount namespace using well-known defaults.
+// First $KUBENSMNT in the environment, then the DefaultKubensmnt defined above.
+func Autodetect() (string, error) {
+	path := os.Getenv(EnvName)
+	if path == "" {
+		path = DefaultKubensmnt
+		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+			return "", nil
+		}
+	}
+	return path, Enter(path)
 }
